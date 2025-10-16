@@ -1,44 +1,49 @@
 # tests.py
-# Adjust the import path below to where your get_files_info() is defined.
-# Example structure: utils/file_tools.py  -> from utils.file_tools import get_files_info
+# Adjust the import path to match where your get_file_content function lives.
+from functions.get_files_info import get_files_info, get_file_content
 
-
-from functions.get_files_info import get_files_info
-
-
-def print_result(title: str, result: str, indent_for_error: int = 4):
+def print_result(title: str, result: str):
     print(title)
+    print("-" * len(title))
+
     if result.startswith("Error:"):
-        # Indent errors by 4 spaces, exactly like in your example
-        print(" " * indent_for_error + result)
+        print("    " + result)
+        return
+
+    # If truncated, print only preview + marker
+    if "[...File" in result:
+        print("Preview (first 300 chars):")
+        print(result[:300] + "...\n")
+        print("✅ Truncation marker detected at the end:")
+        print(result[-120:])  # Show last part with marker
     else:
-        # Each line is printed with a single leading space so it shows as " - ..."
-        for line in result.splitlines():
-            print(" " + line)
+        # File fits entirely — print it all
+        print("Full file content:\n")
+        print(result)
 
 
 def main():
-    # 1) current directory
-    res1 = get_files_info("calculator", ".")
-    print_result('get_files_info("calculator", "."):\nResult for current directory:', res1)
+    # res = get_file_content("calculator", "lorem.txt")
+    # print_result('get_file_content("calculator", "lorem.txt"):\nResult for lorem.txt:', res)
 
-    print()  # blank line between blocks
-
-    # 2) 'pkg' directory
-    res2 = get_files_info("calculator", "pkg")
-    print_result("get_files_info(\"calculator\", \"pkg\"):\nResult for 'pkg' directory:", res2)
-
+    # 1) main.py inside calculator
+    res1 = get_file_content("calculator", "main.py")
+    print_result('get_file_content("calculator", "main.py"):\nResult for "main.py":', res1)
     print()
 
-    # 3) absolute path '/bin' (should error as outside working dir)
-    res3 = get_files_info("calculator", "/bin")
-    print_result('get_files_info("calculator", "/bin"):\nResult for \'/bin\' directory:', res3)
-
+    # 2) pkg/calculator.py
+    res2 = get_file_content("calculator", "pkg/calculator.py")
+    print_result('get_file_content("calculator", "pkg/calculator.py"):\nResult for "pkg/calculator.py":', res2)
     print()
 
-    # 4) parent directory '../' (should error as outside working dir)
-    res4 = get_files_info("calculator", "../")
-    print_result('get_files_info("calculator", "../"):\nResult for \'../\' directory:', res4)
+    # 3) outside working directory — should return an error
+    res3 = get_file_content("calculator", "/bin/cat")
+    print_result('get_file_content("calculator", "/bin/cat"):\nResult for "/bin/cat":', res3)
+    print()
+
+    # 4) non-existent file — should return an error
+    res4 = get_file_content("calculator", "pkg/does_not_exist.py")
+    print_result('get_file_content("calculator", "pkg/does_not_exist.py"):\nResult for missing file:', res4)
 
 
 if __name__ == "__main__":
