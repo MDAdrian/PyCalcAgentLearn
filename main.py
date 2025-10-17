@@ -5,7 +5,7 @@ from google.genai import types
 from dotenv import load_dotenv
 
 from prompts import system_prompt
-from call_function import available_functions
+from call_function import available_functions, call_function
 
 
 def main():
@@ -35,7 +35,8 @@ def main():
         types.Content(role="user", parts=[types.Part(text=user_prompt)]),
     ]
 
-    generate_content(client, messages, verbose)
+    content = generate_content(client, messages, verbose)
+    print(content)
 
 
 def generate_content(client, messages, verbose):
@@ -53,8 +54,27 @@ def generate_content(client, messages, verbose):
     if not response.function_calls:
         return response.text
 
+    # Execute tool calls via dispatcher and validate structure.
+    tool_results = []
     for function_call_part in response.function_calls:
-        print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+        function_call_result = call_function(function_call_part, verbose=verbose)
+
+        # Must have .parts[0].function_response.response
+        try:
+            payload = function_call_result.parts[0].function_response.response
+        except Exception as e:
+            raise RuntimeError(
+                "call_function returned invalid types.Content: "
+                "missing parts[0].function_response.response"
+            ) from e
+
+        if verbose:
+            print(f"-> {payload}")
+
+        tool_results.append(function_call_result)
+
+    # Return a single item if only one function was called, otherwise a list.
+    return tool_results[0] if len(tool_results) == 1 else tool_results
 
 
 if __name__ == "__main__":
