@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+from google.genai import types
 
 def format_completed_process(completed: subprocess.CompletedProcess) -> str:
     """Return a readable summary of the subprocess output."""
@@ -66,3 +67,22 @@ def run_python_file(working_directory, file_path, args=None) -> str:
     except Exception as ex:
         return f'Error: Failed to execute "{file_path}" because: {ex}'
 
+
+schema_run_python_file = types.FunctionDeclaration(
+    name="run_python_file",
+    description="Run a Python file from a file path and return formatted output as a string, constrained to the working directory.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="The file path where to read the file conntent. File path may contain directory as well. Mandatory to provide.",
+            ),
+            "args": types.Schema(
+                type=types.Type.ARRAY,
+                description="The arguments to pass to the function. If ommited, will execute the file without args.",
+                items=types.Schema(type=types.Type.STRING),
+            ),
+        },
+    ),
+)
