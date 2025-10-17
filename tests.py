@@ -1,6 +1,8 @@
 # tests.py
 # Adjust the import path to match where your get_file_content function lives.
+import subprocess
 from functions.get_files_info import get_files_info, get_file_content
+from functions.run_file import format_completed_process, run_python_file
 from functions.write_files import write_file
 
 def print_result(title: str, result: str):
@@ -31,6 +33,11 @@ def print_result_write(title: str, result: str):
         print(result)
     print()  # blank line between tests
 
+def print_case(title: str, result: str) -> None:
+    print(title)
+    print("-" * len(title))
+    print(result if result else "No output produced.")
+    print()  # blank line between cases
 
 
 def main():
@@ -56,17 +63,41 @@ def main():
     # res4 = get_file_content("calculator", "pkg/does_not_exist.py")
     # print_result('get_file_content("calculator", "pkg/does_not_exist.py"):\nResult for missing file:', res4)
 
-    # 1️⃣ Write to a file inside working directory
-    res1 = write_file("calculator", "lorem.txt", "wait, this isn't lorem ipsum")
-    print_result_write('write_file("calculator", "lorem.txt", "wait, this isn\'t lorem ipsum"):', res1)
+    # # 1️⃣ Write to a file inside working directory
+    # res1 = write_file("calculator", "lorem.txt", "wait, this isn't lorem ipsum")
+    # print_result_write('write_file("calculator", "lorem.txt", "wait, this isn\'t lorem ipsum"):', res1)
 
-    # 2️⃣ Write to a file inside a subdirectory
-    res2 = write_file("calculator", "pkg/morelorem.txt", "lorem ipsum dolor sit amet")
-    print_result_write('write_file("calculator", "pkg/morelorem.txt", "lorem ipsum dolor sit amet"):', res2)
+    # # 2️⃣ Write to a file inside a subdirectory
+    # res2 = write_file("calculator", "pkg/morelorem.txt", "lorem ipsum dolor sit amet")
+    # print_result_write('write_file("calculator", "pkg/morelorem.txt", "lorem ipsum dolor sit amet"):', res2)
 
-    # 3️⃣ Attempt to write outside the working directory
-    res3 = write_file("calculator", "/tmp/temp.txt", "this should not be allowed")
-    print_result_write('write_file("calculator", "/tmp/temp.txt", "this should not be allowed"):', res3)
+    # # 3️⃣ Attempt to write outside the working directory
+    # res3 = write_file("calculator", "/tmp/temp.txt", "this should not be allowed")
+    # print_result_write('write_file("calculator", "/tmp/temp.txt", "this should not be allowed"):', res3)
+
+        # 1) should print the calculator's usage instructions
+    cp1 = run_python_file("calculator", "main.py")
+    print_case('run_python_file("calculator", "main.py")', cp1)
+
+    # 2) run the calculator with an expression (may render "nasty" output)
+    cp2 = run_python_file("calculator", "main.py", ["3 + 5"])
+    print_case('run_python_file("calculator", "main.py", ["3 + 5"])', cp2)
+
+    # 3) run the calculator's own tests.py
+    cp3 = run_python_file("calculator", "tests.py")
+    print_case('run_python_file("calculator", "tests.py")', cp3)
+
+    # 4) outside working directory -> error
+    cp4 = run_python_file("calculator", "../main.py")
+    print_case('run_python_file("calculator", "../main.py")', cp4)
+
+    # 5) nonexistent file -> error
+    cp5 = run_python_file("calculator", "nonexistent.py")
+    print_case('run_python_file("calculator", "nonexistent.py")', cp5)
+
+    # 6) not a Python file -> error
+    cp6 = run_python_file("calculator", "lorem.txt")
+    print_case('run_python_file("calculator", "lorem.txt")', cp6)
 
 
 
